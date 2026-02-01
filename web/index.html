@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>doubao-voice 管理</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>doubao-voice 管理</h1>
+    <nav>
+      <a href="#settings" class="nav-link active">设置</a>
+      <a href="#history" class="nav-link">历史记录</a>
+      <a href="#prompts" class="nav-link">提示词</a>
+    </nav>
+  </header>
+  <main>
+    <section id="settings" class="panel">
+      <h2>设置</h2>
+      <form id="config-form">
+        <label>
+          历史条数
+          <input type="number" id="history_size" min="1" max="1000" value="10" />
+        </label>
+        <label>
+          <input type="checkbox" id="ai_optimize_enabled" />
+          启用 AI 优化（粘贴前对内容做优化）
+        </label>
+        <label>
+          默认粘贴模式
+          <select id="default_mode">
+            <option value="restore">restore（粘贴后还原剪贴板）</option>
+            <option value="overwrite">overwrite（直接覆盖粘贴）</option>
+          </select>
+        </label>
+        <button type="submit">保存</button>
+      </form>
+      <p id="config-status" class="status"></p>
+    </section>
+    <section id="history" class="panel hidden">
+      <h2>历史记录</h2>
+      <button type="button" id="history-refresh">刷新</button>
+      <ul id="history-list"></ul>
+    </section>
+    <section id="prompts" class="panel hidden">
+      <h2>提示词</h2>
+      <p>后端保存的提示词，键名如 <code>doubao</code> 可用于豆包系统提示。</p>
+      <div id="prompts-editor"></div>
+      <button type="button" id="prompts-add">添加一项</button>
+      <button type="button" id="prompts-save">保存</button>
+      <p id="prompts-status" class="status"></p>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

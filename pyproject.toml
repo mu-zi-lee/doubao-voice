@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = []
+dev = ["pyinstaller>=6.0.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

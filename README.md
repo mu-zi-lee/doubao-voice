@@ -40,7 +40,7 @@ uv run pytest test/ -v
 2. **安装油猴脚本**：在 Tampermonkey 中新建脚本，粘贴 `script/doubao-collector.user.js` 保存。
 3. **使用**：在需要输入的输入框点一下（光标就位），打开豆包对话页，让豆包输出含代码块的回复；脚本会自动抓取最新代码块发到中继，执行端会粘贴到当前焦点位置。
 
-历史记录：浏览器访问 `http://127.0.0.1:8000/api/history` 查看最近推送内容。
+**管理页**：浏览器访问 `http://127.0.0.1:8000/` 或 `http://127.0.0.1:8000/dashboard` 可管理设置（历史条数、AI 优化开关、默认粘贴模式）、查看历史记录、编辑后端提示词。配置与提示词持久化在用户目录（Windows `%APPDATA%/doubao-voice/`，Unix `~/.config/doubao-voice/`）。
 
 ## 豆包提示词
 
@@ -77,19 +77,28 @@ uv run pytest test/ -v
 ```
 doubao-voice/
 ├── .python-version          # uv 使用的 Python 版本（如 3.12）
-├── pyproject.toml           # 项目与依赖（uv 管理，与主环境分离）
-├── main/                    # 中继
+├── pyproject.toml          # 项目与依赖（uv 管理，与主环境分离）
+├── run.py                  # 单 exe 入口（打包用）
+├── run.spec                # PyInstaller spec（内嵌 web）
+├── main/                   # 中继
 │   ├── __init__.py
-│   ├── config.py            # HISTORY_SIZE 等配置
-│   ├── relay.py             # FastAPI：/api/push、/api/history
+│   ├── config.py           # 配置与提示词持久化（用户目录）
+│   ├── relay.py            # FastAPI：/api/push、/api/history、/api/config、/api/prompts，挂载 web
 │   └── requirements.txt
-├── executor/                # 执行端
+├── executor/               # 执行端
 │   ├── __init__.py
-│   ├── executor.py          # paste_executor(text, mode)
+│   ├── executor.py         # paste_executor(text, mode)
 │   └── requirements.txt
+├── ai_opt/                 # AI 优化（粘贴前对内容优化，当前为 stub）
+│   ├── __init__.py
+│   └── optimizer.py       # optimize(text) -> str
+├── web/                    # 管理页（纯静态）
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
 ├── script/
 │   └── doubao-collector.user.js   # 油猴：豆包代码块 → POST 中继
-├── test/                    # 按模块分子目录
+├── test/
 │   ├── main/
 │   │   ├── test_config.py
 │   │   └── test_push_and_history.py
@@ -116,10 +125,37 @@ uv run pytest test/ -v
 
 - **POST /api/push**  
   Body: `{ "content": string, "timestamp": number, "mode"?: "overwrite"|"restore" }`  
-  默认 `mode=restore`。返回 `{ "status": "received" }`。
+  默认 `mode=restore`。若设置中启用 AI 优化，会先对 content 做优化再粘贴。返回 `{ "status": "received" }`。
 
 - **GET /api/history**  
-  返回最近 N 条记录（N 由 `RELAY_HISTORY_SIZE` 决定），每项含 `content`、`timestamp`、`mode`。
+  返回最近 N 条记录（N 由设置中的历史条数决定），每项含 `content`、`timestamp`、`mode`。
+
+- **GET /api/config**  
+  返回当前配置：`history_size`、`ai_optimize_enabled`、`default_mode`。
+
+- **PUT /api/config**  
+  Body: `{ "history_size": number, "ai_optimize_enabled": boolean, "default_mode": "restore"|"overwrite" }`  
+  持久化到用户目录；修改历史条数需重启中继生效。
+
+- **GET /api/prompts**  
+  返回后端保存的提示词对象（键值对）。
+
+- **PUT /api/prompts**  
+  Body: `{ "键名": "内容", ... }`  
+  覆盖保存提示词。
+
+---
+
+## 打包为单 exe
+
+安装开发依赖后，在项目根执行：
+
+```bash
+uv sync --all-extras
+uv run pyinstaller run.spec
+```
+
+产物在 `dist/doubao-voice.exe`（Windows）。exe 内嵌 `web/` 静态；配置与提示词写在用户目录，不依赖 exe 所在路径。双击 exe 即启动中继，浏览器访问 `http://127.0.0.1:8000/` 打开管理页。
 
 ---
 
