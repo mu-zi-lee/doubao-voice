@@ -1,0 +1,21 @@
+[project]
+name = "doubao-voice"
+version = "0.1.0"
+description = "豆包内容采集 → 中继 → 执行端粘贴，与主环境隔离由 uv 管理"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "pyautogui>=0.9.54",
+    "pyperclip>=1.8.0",
+    "httpx>=0.24.0",
+    "pytest>=7.0.0",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+pythonpath = ["."]

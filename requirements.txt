@@ -1,0 +1,10 @@
+# 项目根依赖（与 pyproject.toml 一致）
+# 推荐使用 uv 管理（与主环境分离）：uv sync && uv run uvicorn main.relay:app ...
+# 备用：pip install -r requirements.txt
+
+fastapi>=0.100.0
+uvicorn>=0.22.0
+pyautogui>=0.9.54
+pyperclip>=1.8.0
+httpx>=0.24.0
+pytest>=7.0.0
