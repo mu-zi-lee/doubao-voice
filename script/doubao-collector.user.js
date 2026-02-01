@@ -5,6 +5,7 @@
 // @description  抓取豆包接收消息中的代码块内容并发送至本地中继
 // @author       doubao-voice
 // @match        https://www.doubao.com/*
+// @connect      127.0.0.1
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
