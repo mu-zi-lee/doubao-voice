@@ -34,6 +34,8 @@
   var configForm = document.getElementById("config-form");
   var historySizeEl = document.getElementById("history_size");
   var aiOptimizeEl = document.getElementById("ai_optimize_enabled");
+  var aiApiKeyEl = document.getElementById("ai_api_key");
+  var aiBaseUrlEl = document.getElementById("ai_base_url");
   var defaultModeEl = document.getElementById("default_mode");
 
   function loadConfig() {
@@ -45,6 +47,8 @@
       .then(function (data) {
         historySizeEl.value = data.history_size || 10;
         aiOptimizeEl.checked = !!data.ai_optimize_enabled;
+        if (aiApiKeyEl) aiApiKeyEl.value = data.ai_api_key || "";
+        if (aiBaseUrlEl) aiBaseUrlEl.value = data.ai_base_url || "";
         defaultModeEl.value = data.default_mode || "restore";
       })
       .catch(function (err) {
@@ -57,6 +61,8 @@
     var body = {
       history_size: parseInt(historySizeEl.value, 10) || 10,
       ai_optimize_enabled: aiOptimizeEl.checked,
+      ai_api_key: (aiApiKeyEl && aiApiKeyEl.value) ? aiApiKeyEl.value : "",
+      ai_base_url: (aiBaseUrlEl && aiBaseUrlEl.value) ? aiBaseUrlEl.value : "",
       default_mode: defaultModeEl.value || "restore",
     };
     fetch(API + "/config", {

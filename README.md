@@ -1,6 +1,8 @@
-# doubao-voice
+# 豆言 (doubao-voice)
 
 豆包语音/文字返回内容自动采集并粘贴到本地输入框：油猴采集 → 中继存储与路由 → 执行端粘贴。三层解耦，免去手动复制。
+
+**作者**：木子不是木子狸
 
 ## 架构
 
@@ -40,7 +42,7 @@ uv run pytest test/ -v
 2. **安装油猴脚本**：在 Tampermonkey 中新建脚本，粘贴 `script/doubao-collector.user.js` 保存。
 3. **使用**：在需要输入的输入框点一下（光标就位），打开豆包对话页，让豆包输出含代码块的回复；脚本会自动抓取最新代码块发到中继，执行端会粘贴到当前焦点位置。
 
-**管理页**：浏览器访问 `http://127.0.0.1:8000/` 或 `http://127.0.0.1:8000/dashboard` 可管理设置（历史条数、AI 优化开关、默认粘贴模式）、查看历史记录、编辑后端提示词。配置与提示词持久化在用户目录（Windows `%APPDATA%/doubao-voice/`，Unix `~/.config/doubao-voice/`）。
+**管理页**：浏览器访问 `http://127.0.0.1:8000/` 或 `http://127.0.0.1:8000/dashboard` 可管理设置（历史条数、AI 优化开关、AI API Key / Base URL、默认粘贴模式）、查看历史记录、编辑后端提示词。配置、提示词与**历史记录**均持久化在用户目录（Windows `%APPDATA%/doubao-voice/`，Unix `~/.config/doubao-voice/`），重启或刷新后历史会从 `history.json` 恢复。
 
 ## 豆包提示词
 
@@ -82,7 +84,7 @@ doubao-voice/
 ├── run.spec                # PyInstaller spec（内嵌 web）
 ├── main/                   # 中继
 │   ├── __init__.py
-│   ├── config.py           # 配置与提示词持久化（用户目录）
+│   ├── config.py           # 配置、提示词与历史记录持久化（用户目录）
 │   ├── relay.py            # FastAPI：/api/push、/api/history、/api/config、/api/prompts，挂载 web
 │   └── requirements.txt
 ├── executor/               # 执行端
@@ -128,14 +130,14 @@ uv run pytest test/ -v
   默认 `mode=restore`。若设置中启用 AI 优化，会先对 content 做优化再粘贴。返回 `{ "status": "received" }`。
 
 - **GET /api/history**  
-  返回最近 N 条记录（N 由设置中的历史条数决定），每项含 `content`、`timestamp`、`mode`。
+  返回最近 N 条记录（N 由设置中的历史条数决定），每项含 `content`、`timestamp`、`mode`。历史持久化在用户目录 `history.json`，重启后自动恢复。
 
 - **GET /api/config**  
   返回当前配置：`history_size`、`ai_optimize_enabled`、`default_mode`。
 
 - **PUT /api/config**  
-  Body: `{ "history_size": number, "ai_optimize_enabled": boolean, "default_mode": "restore"|"overwrite" }`  
-  持久化到用户目录；修改历史条数需重启中继生效。
+  Body: `{ "history_size": number, "ai_optimize_enabled": boolean, "default_mode": "restore"|"overwrite", "ai_api_key": string, "ai_base_url": string }`  
+  持久化到用户目录；修改历史条数需重启中继生效。`ai_api_key`、`ai_base_url` 供 AI 优化接入真实 API 时使用（可选）。
 
 - **GET /api/prompts**  
   返回后端保存的提示词对象（键值对）。
@@ -155,7 +157,7 @@ uv sync --all-extras
 uv run pyinstaller run.spec
 ```
 
-产物在 `dist/doubao-voice.exe`（Windows）。exe 内嵌 `web/` 静态；配置与提示词写在用户目录，不依赖 exe 所在路径。双击 exe 即启动中继，浏览器访问 `http://127.0.0.1:8000/` 打开管理页。
+产物在 `dist/doubao-voice.exe`（Windows）。exe 内嵌 `web/` 静态；配置、提示词与历史记录均写在用户目录，不依赖 exe 所在路径。双击 exe 即启动中继，浏览器访问 `http://127.0.0.1:8000/` 打开管理页。
 
 ---
 
@@ -204,5 +206,11 @@ uv run pyinstaller run.spec
 
 - **新增** README 小节「运行与常见情况」：完整启动流程（简要四步）；表格列出可能遇到的情况与处理（Tampermonkey 跨域弹窗、脚本未运行、403、端口占用、未自动粘贴等）。
 - **脚本** `script/doubao-collector.user.js`：增加 `@connect 127.0.0.1`，便于 Tampermonkey 预声明跨域目标，减少跨域确认弹窗。
+
+### 8. 历史记录持久化
+
+- **更新** `main/config.py`：新增 `history.json` 读写；`load_history(max_size)` 从用户目录读取历史（最多保留 max_size 条），`save_history(records)` 写入当前历史列表。
+- **更新** `main/relay.py`：启动时用 `load_history(HISTORY_SIZE)` 填充队列；每次 `POST /api/push` 后调用 `save_history(list(history_queue))` 写回文件。重启或刷新后历史从用户目录恢复。
+- **更新** `README.md`：管理页、项目结构、API、打包小节及本实现记录中补充历史持久化说明。
 
 以上为本次实现的全部操作记录。

@@ -1,8 +1,9 @@
 [project]
 name = "doubao-voice"
 version = "0.1.0"
-description = "豆包内容采集 → 中继 → 执行端粘贴，与主环境隔离由 uv 管理"
+description = "豆言：豆包内容采集 → 中继 → 执行端粘贴，与主环境隔离由 uv 管理"
 readme = "README.md"
+authors = [{ name = "木子不是木子狸" }]
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.100.0",

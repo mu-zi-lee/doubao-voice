@@ -12,6 +12,8 @@ from main.config import (
     HISTORY_SIZE,
     load_config,
     save_config,
+    load_history,
+    save_history,
     load_prompts,
     save_prompts,
     get_ai_optimize_enabled,
@@ -38,8 +40,10 @@ def _get_optimizer():
     return optimize
 
 
-app = FastAPI(title="doubao-voice relay")
+app = FastAPI(title="豆言 relay")
 history_queue: deque = deque(maxlen=HISTORY_SIZE)
+for record in load_history(HISTORY_SIZE):
+    history_queue.append(record)
 
 
 class PushMessage(BaseModel):
@@ -52,12 +56,15 @@ class ConfigBody(BaseModel):
     history_size: int = Field(ge=1, le=1000, description="历史条数")
     ai_optimize_enabled: bool = False
     default_mode: str = Field(pattern="^(restore|overwrite)$")
+    ai_api_key: str = ""
+    ai_base_url: str = ""
 
 
 @app.post("/api/push")
 async def receive_content(msg: PushMessage, background_tasks: BackgroundTasks):
     record = msg.model_dump()
     history_queue.append(record)
+    save_history(list(history_queue))
     content = msg.content
     if get_ai_optimize_enabled():
         content = _get_optimizer()(content)

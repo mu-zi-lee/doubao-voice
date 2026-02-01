@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>doubao-voice 管理</title>
+  <title>豆言 管理</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header>
-    <h1>doubao-voice 管理</h1>
+    <h1>豆言 管理</h1>
     <nav>
       <a href="#settings" class="nav-link active">设置</a>
       <a href="#history" class="nav-link">历史记录</a>
@@ -26,6 +26,14 @@
         <label>
           <input type="checkbox" id="ai_optimize_enabled" />
           启用 AI 优化（粘贴前对内容做优化）
+        </label>
+        <label>
+          AI API Key
+          <input type="password" id="ai_api_key" placeholder="可选，接入真实 API 时填写" autocomplete="off" />
+        </label>
+        <label>
+          AI Base URL
+          <input type="text" id="ai_base_url" placeholder="可选，如 https://api.xxx.com/v1" />
         </label>
         <label>
           默认粘贴模式
